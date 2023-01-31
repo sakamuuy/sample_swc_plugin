@@ -1,5 +1,5 @@
 use swc_core::ecma::{
-    ast::Program,
+    ast::{Program, CallExpr, Callee, Ident, Super, Expr},
     transforms::testing::test,
     visit::{as_folder, FoldWith, VisitMut},
 };
@@ -8,9 +8,24 @@ use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata
 pub struct TransformVisitor;
 
 impl VisitMut for TransformVisitor {
-    // Implement necessary visit_mut_* methods for actual custom transform.
-    // A comprehensive list of possible visitor methods can be found here:
-    // https://rustdoc.swc.rs/swc_ecma_visit/trait.VisitMut.html
+    fn visit_mut_call_expr(&mut self, n: &mut CallExpr) {
+        let mut jquery_ident = n.callee.clone().expr().unwrap().member().unwrap().obj.call().unwrap().callee.expr().unwrap().ident().unwrap();
+        //
+        // if let Callee::Expr(expr) = &n.callee {
+        //     println!("hoge: {:?}", expr);
+        //     let hn = match expr.as_ref() {
+        //         Expr::Ident(fn_name) => fn_name.sym.to_string(),
+        //         Expr::Member(member) => self.cm.span_to_snippet(member.span).unwrap(),
+        //         _ => "not found".to_string(),
+        //     };
+        //     println!("fuga: {}", hn)
+        // }
+
+        println!("hoge: {:?}", jquery_ident);
+        if jquery_ident.sym.to_string() == "jQuery" {
+            jquery_ident = Ident::new("$".into(), jquery_ident.span);
+        }
+    }
 }
 
 /// An example plugin function with macro support.
@@ -42,7 +57,7 @@ test!(
     |_| as_folder(TransformVisitor),
     boo,
     // Input codes
-    r#"console.log("transform");"#,
+    r#"jQuery(document).ready(function(){})"#,
     // Output codes after transformed with plugin
-    r#"console.log("transform");"#
+    r#"$(document).ready(function(){})"#
 );

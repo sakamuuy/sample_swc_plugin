@@ -1,5 +1,5 @@
 use swc_core::ecma::{
-    ast::{Program, CallExpr, Callee, Ident, Super, Expr, MemberExpr},
+    ast::{CallExpr, Callee, Expr, MemberExpr, Program},
     transforms::testing::test,
     visit::{as_folder, FoldWith, VisitMut},
 };
@@ -9,23 +9,18 @@ pub struct TransformVisitor;
 
 impl VisitMut for TransformVisitor {
     fn visit_mut_call_expr(&mut self, n: &mut CallExpr) {
-        let mut jquery_ident = n.callee.clone().expr().unwrap().member().unwrap().obj.call().unwrap().callee.expr().unwrap().ident().unwrap();
-
-        if let Callee::Expr(expr) = &n.callee {
-            if let Expr::Member(MemberExpr { obj, .. }) = &**expr {
-                if let CallExpr(e) = obj.call() {
-                        println!("foundhoge");
-                    if ident.sym.to_string() == "jQuery" {
-                        println!("found")
+        if let Callee::Expr(expr) = &mut n.callee {
+            if let Expr::Member(MemberExpr { obj, .. }) = &mut **expr {
+                if let Expr::Call(ca) = &mut **obj {
+                    if let Callee::Expr(e) = &mut ca.callee {
+                        if let Expr::Ident(i) = &mut **e {
+                            if &i.sym == "jQuery" {
+                                i.sym = "$".into();
+                            }
+                        }
                     }
                 }
             }
-        }
-
-
-        // println!("hoge: {:?}", jquery_ident);
-        if jquery_ident.sym.to_string() == "jQuery" {
-            jquery_ident = Ident::new("$".into(), jquery_ident.span);
         }
     }
 }

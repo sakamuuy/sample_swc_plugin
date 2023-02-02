@@ -1,4 +1,4 @@
-# sample-plugin
+# sample_swc_plugin
 A sample custom plugin of SWC.
 
 ## Description
